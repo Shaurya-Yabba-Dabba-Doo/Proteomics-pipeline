@@ -4,17 +4,16 @@ library(tidyr)
 library(tibble)
 library(readr)
 
-# Load the data
+# Load data
 full_data <- read_tsv(
     system.file("extdata/proteinGroups.txt", 
                 package = "proDA", mustWork = TRUE),
     col_types = cols(Reverse = col_character())
 )
 
-# Display the first few rows of the data to understand its structure
 print(head(full_data))
 
-# Process the data
+# Process data
 tidy_data <- full_data %>%
     dplyr::select(ProteinID = Protein.IDs, starts_with("LFQ.intensity.")) %>%
     gather(Sample, Intensity, starts_with("LFQ.intensity.")) %>%
@@ -22,10 +21,9 @@ tidy_data <- full_data %>%
     mutate(Replicate = as.numeric(str_match(Sample, "LFQ\\.intensity\\.[[:alnum:]]+\\.(\\d+)")[, 2])) %>%
     mutate(SampleName = paste0(Condition, ".", Replicate))
 
-# Display the tidy data
 print(head(tidy_data))
 
-# Transform the intensity values
+# Transform intensity values
 data <- tidy_data %>%
     mutate(Intensity = ifelse(Intensity == 0, NA, log2(as.numeric(Intensity)))) %>%
     dplyr::select(ProteinID, SampleName, Intensity) %>%
@@ -36,7 +34,7 @@ data <- tidy_data %>%
 # Display a subset of the data matrix
 print(data[1:4, 1:7])
 
-# Create an annotation dataframe
+# Create annotation df
 annotation_df <- tidy_data %>%
     dplyr::select(SampleName, Condition, Replicate) %>%
     distinct() %>%
